@@ -34,6 +34,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
+        $post->load('author');
         return new PostResource($post);
     }
 
