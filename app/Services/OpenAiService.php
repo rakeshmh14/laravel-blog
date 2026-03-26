@@ -12,10 +12,10 @@ class OpenAiService
         $imageData = base64_encode(file_get_contents($image->getPathname()));
         $mimeType = $image->getMimeType();
 
-        $client = (new Factory())->withApiKey(config('services.openapi.key'))->make();
+        $client = (new Factory())->withApiKey(config('services.openai.key'))->make();
         
         $response = $client->chat()->create([
-            'modal' => 'gpt-4o',
+            'model' => 'gpt-4o',
             'message' => [
                 'role' => 'user',
                 'content' => [
