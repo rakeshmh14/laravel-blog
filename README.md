@@ -1,4 +1,4 @@
-# Blog Open AI
+# Blog Post API with AI Image Generation
 
 A Laravel 12 **API-only** backend for a blog with **OpenAI-powered image prompt generation**. Users authenticate with Sanctum bearer tokens, manage their own posts, and upload images to receive detailed prompts suitable for AI image-generation tools (via GPT-4o vision).
 
