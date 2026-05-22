@@ -12,7 +12,9 @@ use Illuminate\Http\Request;
 class PostController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * List posts
+     *
+     * Returns paginated posts for the authenticated user (2 per page).
      */
     public function index(Request $request)
     {
@@ -34,7 +36,7 @@ class PostController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Get post
      */
     public function show(Post $post)
     {
@@ -58,7 +60,7 @@ class PostController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete post
      */
     public function destroy(Post $post)
     {

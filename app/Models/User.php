@@ -48,13 +48,13 @@ class User extends Authenticatable
         ];
     }
 
-    public function Posts(): HasMany
+    public function posts(): HasMany
     {
         return $this->hasMany(Post::class, 'author_id');
     }
 
-    public function  ImageGeneration() : HasMany 
+    public function imageGenerations(): HasMany
     {
-        return $this->hasMany(ImageGeneration::class);   
+        return $this->hasMany(ImageGeneration::class);
     }
 }

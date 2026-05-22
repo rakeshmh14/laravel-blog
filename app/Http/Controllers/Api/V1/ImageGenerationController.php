@@ -4,40 +4,38 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GeneratePromptRequest;
+use App\Http\Requests\ListImageGenerationsRequest;
 use App\Http\Resources\ImageGenerationResource;
 use App\Services\OpenAiService;
 use Illuminate\Support\Str;
-use OpenAI;
-use Symfony\Component\HttpFoundation\Request;
 
 class ImageGenerationController extends Controller
 {
-    public function __construct(private OpenAiService $openAiService)
-    {
-        // throw new \Exception('Not implemented');
-    }
+    public function __construct(private OpenAiService $openAiService) {}
 
-    public function index(GeneratePromptRequest $request)
+    /**
+     * List image generations
+     *
+     * Returns paginated history for the authenticated user.
+     */
+    public function index(ListImageGenerationsRequest $request)
     {
-        $user = request()->user();
-        $imageGenerations = $user->imageGenerations()->latest()->paginate(10);
+        $user = $request->user();
 
         $query = $user->imageGenerations();
 
-        // Apply search filter
-        if($request->has('search') && !empty($request->search)) {
-            $query->where('generated_prompt', 'LIKE', '%'. $request->search.'%');
+        if ($request->filled('search')) {
+            $query->where('generated_prompt', 'LIKE', '%'.$request->search.'%');
         }
 
-        // Apply Sorting
-        $allowedSortFields = ['created_at', 'generated_prompt','original_filename','file_size'];
+        $allowedSortFields = ['created_at', 'generated_prompt', 'original_filename', 'file_size'];
         $sortField = 'created_at';
         $sortDirection = 'desc';
 
-        if($request->has('sort')&& !empty($request->sort)) {
+        if ($request->filled('sort')) {
             $sort = $request->sort;
-            if(str_starts_with($sort, '-')) {
-                $sortField = substr($sort,1);
+            if (str_starts_with($sort, '-')) {
+                $sortField = substr($sort, 1);
                 $sortDirection = 'desc';
             } else {
                 $sortField = $sort;
@@ -45,21 +43,23 @@ class ImageGenerationController extends Controller
             }
         }
 
-        if(!in_array($sortField, $allowedSortFields)) {
+        if (! in_array($sortField, $allowedSortFields)) {
             $sortField = 'created_at';
             $sortDirection = 'desc';
         }
 
         $query->orderBy($sortField, $sortDirection);
 
-        return ImageGenerationResource::collection($imageGenerations);
+        $imageGenerations = $query->paginate(10);
 
+        return ImageGenerationResource::collection($imageGenerations);
     }
 
     /**
-     * Generate Prompt
-     * 
-     * Generate descriptive prompt from an image
+     * Generate prompt from image
+     *
+     * Upload an image file. OpenAI analyzes it and returns a descriptive prompt
+     * suitable for AI image-generation tools.
      */
     public function store(GeneratePromptRequest $request)
     {
@@ -69,13 +69,11 @@ class ImageGenerationController extends Controller
         $originalName = $image->getClientOriginalName();
         $sanitizedName = preg_replace('/[^a-zA-Z0-9._-]/', '_', pathinfo($originalName, PATHINFO_FILENAME));
         $extension = $image->getClientOriginalExtension();
-        $safeFilename = $sanitizedName. '_'.Str::random(10) . '.' . $extension;
+        $safeFilename = $sanitizedName.'_'.Str::random(10).'.'.$extension;
 
-        $imagePath = $image->storeAs('uploads/images',$safeFilename, 'public');
-
+        $imagePath = $image->storeAs('uploads/images', $safeFilename, 'public');
 
         $generatedPrompt = $this->openAiService->generatePromptFromImage($image);
-
 
         $imageGeneration = $user->imageGenerations()->create([
             'image_path' => $imagePath,
@@ -86,7 +84,5 @@ class ImageGenerationController extends Controller
         ]);
 
         return new ImageGenerationResource($imageGeneration);
-
     }
 }
-    

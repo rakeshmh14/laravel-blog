@@ -35,9 +35,14 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(1000)->by($request->user()?->id ?: ($request->ip()));
         });
 
-        Scramble::afterOpenApiGenerated(function(OpenApi $openApi) {
+        Scramble::configure()
+            ->withDocumentTransformers(function (OpenApi $openApi) {
+                $openApi->info->title = config('app.name', 'Blog Open AI').' API';
+            });
+
+        Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
             $openApi->secure(
-                SecurityScheme::http('bearer', 'BearerAuth')
+                SecurityScheme::http('bearer', 'JWT')
             );
         });
     }
